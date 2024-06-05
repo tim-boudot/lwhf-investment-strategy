@@ -1,1 +1,9 @@
+# General
 numpy
+
+# Portfolio Optimization
+PyPortfolioOpt
+
+# BigQuery
+google-cloud-bigquery
+db_dtypes
