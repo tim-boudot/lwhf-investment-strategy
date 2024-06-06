@@ -3,6 +3,7 @@ numpy
 
 # Portfolio Optimization
 PyPortfolioOpt
+scikit-learn
 
 # BigQuery
 google-cloud-bigquery
