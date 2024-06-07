@@ -6,12 +6,15 @@ from lwhf.ml_logic.backtesting import get_data, features_from_data, initialize_m
 app = FastAPI()
 
 #TODO: Handle the saving and loading of model on GCloud
+#TODO: Change backtesting function to make it more flexible
 
 @app.get("/")
 def root():
     return {'greeting': 'Hello'}  # YOUR CODE HERE
 
 @app.get("/predict")
-def backtesting_demo():
-    port_return, weekly_returns = backtesting('2024-05-27',4)
-    return {'total return':port_return}
+def backtesting_demo(as_of_date: str, n_periods:int):
+    port_return, weekly_returns, cleaned_weigths = backtesting(as_of_date,n_periods)
+    return {'total return':port_return,
+            'weekly_returns':weekly_returns,
+            'latest_portfolio':cleaned_weigths}
