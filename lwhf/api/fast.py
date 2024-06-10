@@ -10,7 +10,7 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {'greeting': 'Hello'}  # YOUR CODE HERE
+    return {'Le Wagon Hedge Fund Recommendation': 'Purchase Bitcoin'}  # YOUR CODE HERE
 
 @app.get("/predict")
 def backtesting_demo(as_of_date: str, n_periods:int):
