@@ -1,0 +1,23 @@
+# General
+numpy
+pandas
+pyarrow
+uvicorn
+fastapi
+
+#Machine Learning
+# tensorflow
+
+# Portfolio Optimization
+PyPortfolioOpt
+scikit-learn
+
+# BigQuery
+google-cloud-bigquery
+google-cloud-storage
+google-auth
+google-auth-oauthlib
+google-cloud-core
+google-api-core
+
+db-dtypes
