@@ -1,56 +1,22 @@
-import pandas as pd
-import numpy as np
+from lwhf.ml_logic.data_GCS import save_model_GCS, check_model_GCS
+from lwhf.ml_logic.data_BQ import get_all_data, get_data
+from lwhf.ml_logic.model import initialize_model_LSTM, fitting_model, predicting
+from lwhf.ml_logic.Cov import est_covariance
+
 import datetime as DT
-import pandas as pd
 from pypfopt import EfficientFrontier
-from google.cloud import bigquery
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import layers
-from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import Normalization
+
+import time
+import pandas as pd
+from sklearn.linear_model import LinearRegression
 # from pypfopt import risk_models
 # from pypfopt import expected_returns
 import os
+from lwhf.params import *
 
-gcp_project = os.environ['GCP_PROJECT']
 
-def get_all_data():
-    # start_date=datetime.strptime(start_date,'%Y-%m-%d')
-    # end_date=datetime.strptime(end_date,'%Y-%m-%d')
-    PROJECT = "le-wagon-hedge-fund"
-    DATASET = "data_alpaca_20240604"
-    TABLE = "SP500_Historical_Weekly"
-    query = f"""
+def features_from_data(df, method_cov):
 
-    SELECT *
-    FROM {PROJECT}.{DATASET}.{TABLE}
-    """
-    client = bigquery.Client(project=gcp_project)
-    query_job = client.query(query)
-    result = query_job.result()
-    df = result.to_dataframe()
-    return df
-
-def get_data(start_date, end_date):
-    # start_date=datetime.strptime(start_date,'%Y-%m-%d')
-    # end_date=datetime.strptime(end_date,'%Y-%m-%d')
-    PROJECT = "le-wagon-hedge-fund"
-    DATASET = "data_alpaca_20240604"
-    TABLE = "SP500_Historical_Weekly"
-    query = f"""
-
-    SELECT *
-    FROM {PROJECT}.{DATASET}.{TABLE}
-    WHERE (DATE(timestamp) BETWEEN '{start_date}' AND '{end_date}')
-    """
-    client = bigquery.Client(project=gcp_project)
-    query_job = client.query(query)
-    result = query_job.result()
-    df = result.to_dataframe()
-    return df
-
-def features_from_data(df):
     time_df = df.pivot(index='timestamp',columns='symbol',values='close')
     returns_df = time_df.pct_change()#.dropna()
     # Removing all stocks that have more than 20 missing observations
@@ -69,34 +35,10 @@ def features_from_data(df):
     X_pred = returns_df.to_numpy()
     X_pred = X_pred.reshape(X_pred.shape[1],X_pred.shape[0],1)
 
-    return X, y, X_pred, returns_df.cov(), list(returns_df.columns)
+    #change method for another estimation of the covariance
+    covariance = est_covariance(returns_df,  method_cov, returns_data=True)
 
-def initialize_model_LSTM(X):
-    # 1- RNN Architecture
-    normalizer = Normalization()
-    normalizer.adapt(X)
-    model = Sequential()
-    model.add(normalizer)
-    model.add(layers.LSTM(units=20, activation='tanh'))
-    model.add(layers.Dense(10, activation="relu"))
-    model.add(layers.Dense(1, activation="linear"))
-
-    # 2- Compilation
-    model.compile(loss='mse',
-                optimizer='rmsprop',
-                metrics=['mae']) # very high lr so we can converge with such a small dataset
-
-    return model
-
-def fitting_model(X,y):
-    model = initialize_model_LSTM(X)
-    es = EarlyStopping(patience=5, restore_best_weights=True)
-    history = model.fit(X, y.reshape(-1,), validation_split=.2, batch_size=32, epochs=20, verbose=1, callbacks=[es])
-    return model
-
-def predicting(X, model):
-    y_pred = model.predict(X)
-    return y_pred
+    return X, y, X_pred, covariance, list(returns_df.columns)
 
 def making_portfolio(tickers,expected_returns, cov_df):
     ef = EfficientFrontier(expected_returns,cov_df, solver='ECOS') #Had to change the solver to ECOS as the other wouldn't work. Look into this.
@@ -107,7 +49,7 @@ def making_portfolio(tickers,expected_returns, cov_df):
 
 def portfolio_returns(weights: pd.DataFrame, start_date: str, end_date: str):
     # Finding the returns for all stocks between start and end date
-    df=get_data(start_date,end_date)
+    df=get_data(start_date, end_date,  timestep_data = 'W')
     time_df = df.pivot(index='timestamp',columns='symbol',values='close')
 
     #Resetting index for the time_df
@@ -125,7 +67,11 @@ def portfolio_returns(weights: pd.DataFrame, start_date: str, end_date: str):
 
 #TODO: Make this code more efficient by not querying every time but rather saving data locally while running
 
-def backtesting(as_of_date, n_periods, period_type='W'):
+def backtesting(as_of_date, n_periods, period_type='W', method_cov = 'pandas'):
+    '''
+    method_cov: way to estimate the covariance
+    '''
+
     as_of = DT.datetime.strptime(as_of_date, '%Y-%m-%d').date()
     starting_point = as_of - DT.timedelta(days=7 * n_periods)
     starting_point_str = f'{starting_point.year}-{starting_point.month:02d}-{starting_point.day:02d}'
@@ -134,11 +80,20 @@ def backtesting(as_of_date, n_periods, period_type='W'):
 
     # Training the model with data until the starting point
 
-    df = get_data('2016-01-04',as_of_date)
+    df = get_data('2016-01-04', as_of_date, timestep_data = 'W')
+
     df = df[df.timestamp.apply(lambda x: DT.datetime.strptime(x, '%Y-%m-%d %H:%M:%S+00:00').date())<starting_point]
 
-    X, y, X_pred, cov_df, tickers = features_from_data(df)
-    model = fitting_model(X,y)
+    #dates on which data will be trained
+    start_date = list(df.timestamp)[0]
+    end_date = list(df.timestamp)[-1]
+
+    X, y, X_pred, cov_df, tickers = features_from_data(df, method_cov)
+
+    model = fitting_model(X,y, start_date, end_date, timestep_data = 'W', type_model = 'LSTM')
+
+
+    #TODO L: REMOVE asterisks
 
     # Calculating portfolio returns
     while starting_point < as_of:
@@ -147,7 +102,7 @@ def backtesting(as_of_date, n_periods, period_type='W'):
         week_end_str = f'{one_week_ahead.year}-{one_week_ahead.month:02d}-{one_week_ahead.day:02d}'
 
         df = df[df.timestamp.apply(lambda x: DT.datetime.strptime(x, '%Y-%m-%d %H:%M:%S+00:00').date())<starting_point]
-        X, y, X_pred, cov_df, tickers = features_from_data(df)
+        X, y, X_pred, cov_df, tickers = features_from_data(df, method_cov)
         y_pred = predicting(X_pred, model)
         cleaned_weights = making_portfolio(tickers,y_pred.reshape(-1), cov_df)
         weekly_return = portfolio_returns(cleaned_weights,week_start_str,week_end_str)
@@ -158,3 +113,8 @@ def backtesting(as_of_date, n_periods, period_type='W'):
     port_return -= 1
 
     return port_return, weekly_returns, cleaned_weights
+    
+
+
+if __name__ == '__main__':
+    backtesting('2024-05-27', 2, period_type='W')

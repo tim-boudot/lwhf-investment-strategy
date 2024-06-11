@@ -1,5 +1,9 @@
-raw_data/
+raw_data/*
 .env
 .DS_Store
 .python-version
 .env.yaml
+models/*
+*__pycache__*
+*__pycache__/
+*.pyc
