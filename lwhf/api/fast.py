@@ -13,7 +13,7 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {'greeting': 'Hello'}  # YOUR CODE HERE
+    return {'Le Wagon Hedge Fund Recommendation': 'Purchase Bitcoin'}  # YOUR CODE HERE
 
 
 #uvicorn fast:app --reload --port 8205

@@ -94,7 +94,7 @@ def backtesting(as_of_date, n_periods, period_type='W', method_cov = 'pandas'):
 
 
     #TODO L: REMOVE asterisks
-    '''
+
     # Calculating portfolio returns
     while starting_point < as_of:
         one_week_ahead = starting_point + DT.timedelta(days=7)
@@ -110,8 +110,11 @@ def backtesting(as_of_date, n_periods, period_type='W', method_cov = 'pandas'):
         port_return *= (1+weekly_return)
         starting_point += DT.timedelta(days=7)
 
-    return port_return, weekly_returns
-    '''
+    port_return -= 1
+
+    return port_return, weekly_returns, cleaned_weights
+    
+
 
 if __name__ == '__main__':
     backtesting('2024-05-27', 2, period_type='W')
