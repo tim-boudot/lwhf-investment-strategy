@@ -9,8 +9,6 @@ from lwhf.ml_logic.data_GCS import save_model_GCS, check_model_GCS
 
 
 def initialize_model_LSTM(X):
-    # 1- RNN Architecture
-
     #normalizer = layers.Normalization()
     inputs = layers.Input(shape=X.shape[1:])
     #normalizer.adapt(X)
@@ -32,9 +30,14 @@ def initialize_model_LSTM(X):
     return model
 
 
-def fitting_model(X,y, start_date, end_date, timestep_data = 'W', type_model = 'LSTM'):
 
-    model_name = f'{type_model}/{start_date}/{end_date}/{timestep_data}'
+def fitting_model(X,y, start_date:str , end_date:str, timestep_data, name_data,  type_model = 'LSTM'):
+
+    '''
+    type_model: choose among different models ['LSTM']
+    '''
+
+    model_name = f'{name_data}/{type_model}/{start_date}/{end_date}/{timestep_data}'
 
     #GET MODEL FROM GCS IF EXISTS
     if check_model_GCS(model_name):
@@ -47,7 +50,8 @@ def fitting_model(X,y, start_date, end_date, timestep_data = 'W', type_model = '
         es = EarlyStopping(patience=5, restore_best_weights=True)
         history = model.fit(X, y.reshape(-1), validation_split=.2, batch_size=32, epochs=10, verbose=10 ,callbacks=[es])
 
-    #SAVING MODEL LOCALLY - note: only last one fitted is sr
+
+    #SAVING MODEL LOCALLY - note: only last one fitted is stored locally => in LOCAL_MODEL_PATH
     model.save(LOCAL_MODEL_PATH)
     print("✅ Model saved locally")
 

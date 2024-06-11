@@ -12,6 +12,7 @@ uvicorn         # web server
 
 # BigQuery
 google-cloud-bigquery
+google-cloud-storage
 db_dtypes
 
 # Tensorflow

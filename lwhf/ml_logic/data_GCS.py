@@ -37,7 +37,7 @@ def save_model_GCS(model: keras.Model, model_name: str) -> None:
     return None
 
 
-#check if model exists 
+#check if model exists
 def check_model_GCS(model_name):
 
     storage_client = storage.Client()
@@ -50,7 +50,3 @@ def check_model_GCS(model_name):
         blob.download_to_filename(LOCAL_MODEL_PATH)
 
     return blob.exists()
-
-
-
-yf_2000_metrics_all
