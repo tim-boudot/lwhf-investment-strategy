@@ -4,3 +4,6 @@ raw_data/*
 .python-version
 .env.yaml
 models/*
+*__pycache__*
+*__pycache__/
+*.pyc
