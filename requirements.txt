@@ -1,9 +1,14 @@
 # General
 numpy
+streamlit
 
 # Portfolio Optimization
 PyPortfolioOpt
 scikit-learn
+
+fastapi         # API framework
+pytz            # time zone management
+uvicorn         # web server
 
 # BigQuery
 google-cloud-bigquery
