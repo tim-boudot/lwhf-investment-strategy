@@ -89,13 +89,13 @@ class BackTester:
             week_df = prices_df[prices_df.index.date >= starting_point]
             week_df = week_df[week_df.index.date <= one_week_ahead]
 
-            print(f'----- Predicting for week {starting_point} to {one_week_ahead}')
-            print(f' -- shape of pred_df: {pred_df.shape}')
-            print(f' -- shape of pred_X: {pred_X.shape}')
-            print(f' -- shape of y_pred: {y_pred.shape}')
-            print(f' -- shape of cov_df: {cov_df.shape}')
-            print(f' -- shape of prices_df: {prices_df.shape}')
-            print(f' -- shape of week_df: {week_df.shape}')
+            # print(f'----- Predicting for week {starting_point} to {one_week_ahead}')
+            # print(f' -- shape of pred_df: {pred_df.shape}')
+            # print(f' -- shape of pred_X: {pred_X.shape}')
+            # print(f' -- shape of y_pred: {y_pred.shape}')
+            # print(f' -- shape of cov_df: {cov_df.shape}')
+            # print(f' -- shape of prices_df: {prices_df.shape}')
+            # print(f' -- shape of week_df: {week_df.shape}')
 
             ret = week_df.iloc[-1] / week_df.iloc[0] - 1
             weekly_return = (clean_weights.weights * ret).sum()
