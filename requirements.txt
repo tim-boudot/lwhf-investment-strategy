@@ -25,3 +25,6 @@ darts
 
 # Jupyter
 ipykernel
+
+# needed to make riskfolio plots work
+matplotlib==3.7.0

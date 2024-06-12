@@ -51,7 +51,6 @@ def query_all_data(project, dataset, table):
     Get all data available from GOOGLE BIG QUERY
     '''
     filename = f'{project}-{dataset}-{table}.csv'
-    print(filename)
 
     # check if the file is in the local cache
     df = check_local(filename)
@@ -64,6 +63,8 @@ def query_all_data(project, dataset, table):
         if df is not None:
             return df
 
+
+    print(f'Querying all data from {project}.{dataset}.{table}')
     query = f"""
     SELECT *
     FROM {project}.{dataset}.{table}
@@ -90,7 +91,6 @@ def query_between_dates(project, dataset, table, start_date, end_date):
         raise ValueError('end_date has to be in format YYYY-MM-DD')
 
     filename = f'{project}-{dataset}-{table}-{start_date}-{end_date}.csv'
-    print(filename)
 
     # check if the file is in the local cache
     df = check_local(filename)
@@ -102,6 +102,8 @@ def query_between_dates(project, dataset, table, start_date, end_date):
         df = check_local(filename)
         if df is not None:
             return df
+
+    print(f'Querying data from {project}.{dataset}.{table} between {start_date} and {end_date}')
 
     query = f"""
     SELECT *
