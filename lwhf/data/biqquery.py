@@ -217,13 +217,3 @@ class BigQueryData:
         print(f'Created X and y with shapes {X.shape} and {y.shape}')
 
         return X, y
-
-    '''TODO: This is totally wrong, should have same dim as X'''
-    def get_X_pred(self, based_on='returns'):
-        '''
-        This is just to check consistency, remove later
-        '''
-        'TODO: the reshape method is wrong, see above'
-        return self.returns_df.to_numpy().reshape(self.returns_df.shape[1],
-                                                  self.returns_df.shape[0],
-                                                  1)
