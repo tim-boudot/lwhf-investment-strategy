@@ -13,6 +13,7 @@ PyPortfolioOpt
 scikit-learn
 
 # BigQuery
+google-cloud
 google-cloud-bigquery
 google-cloud-storage
 google-auth

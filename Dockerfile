@@ -1,12 +1,17 @@
-FROM python:3.10.6-buster
 FROM tensorflow/tensorflow:2.16.1
 
-COPY requirements_dev.txt /requirements.txt
+WORKDIR /app
+
+COPY requirements_dev.txt requirements.txt
 RUN pip install --upgrade pip
+RUN pip install pybind11
+RUN pip install cvxpy
+RUN pip install riskfolio-lib
 RUN pip install -r requirements.txt
 
-COPY lwhf /lwhf
-COPY setup.py /setup.py
+COPY lwhf lwhf
+COPY setup.py setup.py
+COPY raw_data raw_data
 COPY Makefile Makefile
 
 RUN pip install .
