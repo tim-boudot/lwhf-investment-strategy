@@ -27,4 +27,7 @@ darts
 ipykernel
 
 # needed to make riskfolio plots work
+pybind11
+cvxpy
+riskfolio-lib
 matplotlib==3.7.0
