@@ -69,28 +69,30 @@ class BackTester:
 
         port_return = 1
         weekly_returns = []
+
         while starting_point < as_of:
             one_week_ahead = starting_point + datetime.timedelta(days=7)
+            print(f'----- Predicting for week {starting_point} to {one_week_ahead}')
+
             pred_df = returns_df[returns_df.index.date < starting_point]
             pred_X, _ = get_Xy(pred_df)
             y_pred = self.model.predict(pred_X)
             cov_df = estimate_covariance(pred_df, 'pandas')
+
+            #print(f' -- shape of pred_df: {pred_df.shape}')
+
 
             port = rp.Portfolio(returns=pred_df)
             port.mu = y_pred.reshape(-1)
             port.cov = cov_df
             clean_weights = port.optimization(model='Classic', rm='MV', obj='Sharpe', rf=0, l=0)
 
-            # clean_weights = make_portfolio(list(self.bq.prices.columns),
-            #                                y_pred.reshape(-1),
-            #                                cov_df)
+            #print(f' -- optimized weights: {clean_weights.shape}')
 
             prices_df = self.bq.prices
             week_df = prices_df[prices_df.index.date >= starting_point]
             week_df = week_df[week_df.index.date <= one_week_ahead]
 
-            # print(f'----- Predicting for week {starting_point} to {one_week_ahead}')
-            # print(f' -- shape of pred_df: {pred_df.shape}')
             # print(f' -- shape of pred_X: {pred_X.shape}')
             # print(f' -- shape of y_pred: {y_pred.shape}')
             # print(f' -- shape of cov_df: {cov_df.shape}')
@@ -103,7 +105,6 @@ class BackTester:
             weekly_returns.append(weekly_return)
             port_return *= (1+weekly_return)
             starting_point += datetime.timedelta(days=7)
-
 
         port_return -= 1
 
