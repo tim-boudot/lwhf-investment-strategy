@@ -1,0 +1,39 @@
+# FROM python:3.10.6-buster
+# FROM tensorflow/tensorflow:2.13.0
+FROM ubuntu:22.04 as base
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG C.UTF-8
+
+COPY setup.sources.sh /setup.sources.sh
+COPY setup.packages.sh /setup.packages.sh
+COPY cpu.packages.txt /cpu.packages.txt
+RUN chmod a+rwx /setup.sources.sh
+RUN /setup.sources.sh
+RUN /setup.packages.sh /cpu.packages.txt
+
+ARG PYTHON_VERSION=python3.10.6
+ARG TENSORFLOW_PACKAGE=tf-nightly
+COPY setup.python.sh /setup.python.sh
+COPY cpu.requirements.txt /cpu.requirements.txt
+RUN /setup.python.sh $PYTHON_VERSION /cpu.requirements.txt
+RUN pip install --no-cache-dir ${TENSORFLOW_PACKAGE}
+
+WORKDIR /app
+
+COPY requirements_dev.txt requirements.txt
+RUN pip install --upgrade pip
+RUN pip install pybind11
+RUN pip install cvxpy
+RUN pip install riskfolio-lib
+RUN pip install -r requirements.txt
+
+COPY lwhf lwhf
+COPY setup.py setup.py
+RUN mkdir raw_data
+COPY Makefile Makefile
+
+RUN pip install .
+RUN pip install protobuf==3.20.*
+# RUN make reset_local_files
+
+CMD uvicorn lwhf.api.fast:app --host 0.0.0.0 --port $PORT
