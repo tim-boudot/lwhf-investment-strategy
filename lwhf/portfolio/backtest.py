@@ -5,6 +5,7 @@ from lwhf.models.lstm import SimpleLSTM
 from pypfopt import risk_models, EfficientFrontier
 import pandas as pd
 import riskfolio as rp
+import numpy as np
 
 def estimate_covariance(df_returns, method_cov, log_returns = False, returns_data = True):
     '''
@@ -81,6 +82,11 @@ class BackTester:
 
             #print(f' -- shape of pred_df: {pred_df.shape}')
 
+            if np.all(y_pred < 0):
+                print(' -- all negative')
+                starting_point += datetime.timedelta(days=7)
+                weekly_returns.append(0)
+                continue
 
             port = rp.Portfolio(returns=pred_df)
             port.mu = y_pred.reshape(-1)

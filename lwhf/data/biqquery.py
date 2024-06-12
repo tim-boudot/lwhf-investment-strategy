@@ -5,34 +5,6 @@ import numpy as np
 from lwhf.params import QUERIED_CACHE_BUCKET, QUERIED_CACHE_LOCAL
 import os
 
-def save_to_bucket(filename):
-    '''
-    Save a file to the bucket
-    '''
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(QUERIED_CACHE_BUCKET)
-    blob = bucket.blob(filename)
-    if blob.exists():
-        blob.delete()
-    blob = bucket.blob(filename)
-    blob.upload_from_filename(f'{QUERIED_CACHE_LOCAL}/{filename}')
-    #blob.upload_from_filename(QUERIED_CACHE_LOCAL)
-    print("✅ Model saved to GCS")
-    return None
-
-def check_bucket(filename):
-    '''
-    Check if a file exists in the bucket
-    '''
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(QUERIED_CACHE_BUCKET)
-    blob = bucket.blob(filename)
-
-    if blob.exists():
-        print(f'✅ Found {filename} in the bucket.')
-        blob.download_to_filename(f'{QUERIED_CACHE_LOCAL}/{filename}')
-        #blob.download_to_filename(QUERIED_CACHE_LOCAL)
-    return None
 
 def check_local(filename):
     '''
@@ -56,13 +28,6 @@ def query_all_data(project, dataset, table):
     df = check_local(filename)
     if df is not None:
         return df
-    else:
-        # check if the file is in the bucket
-        check_bucket(filename)
-        df = check_local(filename)
-        if df is not None:
-            return df
-
 
     print(f'Querying all data from {project}.{dataset}.{table}')
     query = f"""
@@ -96,12 +61,6 @@ def query_between_dates(project, dataset, table, start_date, end_date):
     df = check_local(filename)
     if df is not None:
         return df
-    else:
-        # check if the file is in the bucket
-        check_bucket(filename)
-        df = check_local(filename)
-        if df is not None:
-            return df
 
     print(f'Querying data from {project}.{dataset}.{table} between {start_date} and {end_date}')
 
