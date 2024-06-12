@@ -19,8 +19,8 @@ class SimpleLSTM:
         model.add(inputs)
         #TODO: normalizer breaks the model?
         #model.add(normalizer)
-        model.add(layers.LSTM(units=20, activation='linear'))
-        model.add(layers.Dense(10, activation="linear"))
+        model.add(layers.LSTM(units=20, activation='tanh'))
+        model.add(layers.Dense(10, activation="relu"))
         model.add(layers.Dropout(0.1))
         #model.add(layers.LSTM(units=20, activation='linear'))
         model.add(layers.Dense(1, activation="linear"))
