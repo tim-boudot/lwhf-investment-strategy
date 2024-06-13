@@ -11,7 +11,7 @@ RUN pip install -r requirements.txt
 
 COPY lwhf lwhf
 COPY setup.py setup.py
-COPY raw_data raw_data
+RUN mkdir raw_data
 COPY Makefile Makefile
 
 RUN pip install .
