@@ -71,6 +71,12 @@ class BackTester:
         port_return = 1
         weekly_returns = []
 
+        # have uniform weights to start with
+        ticker_names = list(returns_df.columns)
+        num_tickers = len(ticker_names)
+        uniform_weights = np.full(num_tickers, 1/num_tickers)
+        clean_weights = pd.DataFrame(data={'weights': uniform_weights}, index=ticker_names)
+
         while starting_point < as_of:
             one_week_ahead = starting_point + datetime.timedelta(days=7)
             print(f'----- Predicting for week {starting_point} to {one_week_ahead}')

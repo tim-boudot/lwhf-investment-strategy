@@ -13,12 +13,13 @@ class SimpleLSTM:
         self.model = None
 
     def initialize_model(self):
-        inputs = layers.Input(self.input_shape)
-        #normalizer.adapt(X)
         model = Sequential()
-        model.add(inputs)
         #TODO: normalizer breaks the model?
+        #normalizer = layers.Normalization()
+        #normalizer.adapt(self.X_train)
         #model.add(normalizer)
+        inputs = layers.Input(self.input_shape)
+        model.add(inputs)
         model.add(layers.LSTM(units=20, activation='tanh'))
         model.add(layers.Dense(10, activation="relu"))
         model.add(layers.Dropout(0.1))
