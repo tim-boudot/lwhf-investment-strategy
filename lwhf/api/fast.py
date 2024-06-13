@@ -5,7 +5,9 @@ from lwhf.ml_logic.backtesting import get_data, features_from_data, initialize_m
 from lwhf.portfolio.backtest import BackTester, get_total_return
 import time, os, json
 from lwhf.params import QUERIED_CACHE_LOCAL
-
+from lwhf.data.biqquery import BigQueryData
+from lwhf.params import GCP_PROJECT, DATASET, TABLE
+import datetime
 
 
 app = FastAPI()
@@ -93,3 +95,58 @@ def final_backtest(as_of_date: str, n_periods:int):
         json.dump(result, f)
 
     return result
+
+
+@app.get("/all_close_prices")
+def get_all_close_prices(as_of_date: str):
+
+    backtest_api_cache_folder = 'all_close_prices_api_cache'
+    full_path = os.path.join(QUERIED_CACHE_LOCAL, backtest_api_cache_folder)
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+
+    filename = f'{as_of_date}.csv'
+    df_full_path = os.path.join(full_path, filename)
+    if os.path.exists(df_full_path):
+        print(f'✅ Found {filename} in the local cache.')
+        # read the json file as a dictionary
+        pd.read_csv(df_full_path)
+        return result
+
+
+    # time.sleep(15)
+    bq = BigQueryData(GCP_PROJECT, DATASET, TABLE)
+    bq.get_data('2016-01-04', as_of_date)
+    result = bq.get_prices()
+
+    df_full_path.to_csv(df_full_path, index=False)
+    return result
+
+# @app.get("/all_close_prices_for_periods")
+# def get_all_close_prices(as_of_date: str, n_periods:int):
+
+#     backtest_api_cache_folder = 'all_close_prices_api_cache'
+#     full_path = os.path.join(QUERIED_CACHE_LOCAL, backtest_api_cache_folder)
+#     if not os.path.exists(full_path):
+#         os.makedirs(full_path)
+
+#     filename = f'{as_of_date}-{n_periods}.csv'
+#     df_full_path = os.path.join(full_path, filename)
+#     if os.path.exists(df_full_path):
+#         print(f'✅ Found {filename} in the local cache.')
+#         # read the json file as a dictionary
+#         pd.read_csv(df_full_path)
+#         return result
+
+
+#     # time.sleep(15)
+#     bq = BigQueryData(GCP_PROJECT, DATASET, TABLE)
+#     bq.get_data('2016-01-04', as_of_date)
+#     result = bq.get_prices()
+
+#     as_of = datetime.datetime.strptime(as_of_date, '%Y-%m-%d').date()
+#     result = result[result.index.date < as_of_date]
+
+
+#     df_full_path.to_csv(df_full_path, index=False)
+#     return result
