@@ -110,7 +110,7 @@ def get_all_close_prices(as_of_date: str):
     if os.path.exists(df_full_path):
         print(f'✅ Found {filename} in the local cache.')
         # read the json file as a dictionary
-        pd.read_csv(df_full_path)
+        result = pd.read_csv(df_full_path)
         return result
 
 
@@ -148,5 +148,5 @@ def get_all_close_prices(as_of_date: str):
 #     result = result[result.index.date < as_of_date]
 
 
-#     df_full_path.to_csv(df_full_path, index=False)
+#     result.to_csv(df_full_path, index=False)
 #     return result
