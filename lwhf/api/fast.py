@@ -2,8 +2,9 @@ import pandas as pd
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from lwhf.ml_logic.backtesting import get_data, features_from_data, initialize_model_LSTM, fitting_model, predicting, making_portfolio, portfolio_returns, backtesting
-from lwhf.portfolio.backtest import BackTester
+from lwhf.portfolio.backtest import BackTester, get_total_return
 import time
+
 
 app = FastAPI()
 
@@ -37,7 +38,14 @@ def final_backtest(as_of_date: str, n_periods:int):
     print('Got the data')
     bt.train_model()
     print('trained the model, starting backtesting')
-    port_return, weekly_returns, clean_weights = bt.backtest()
-    return {'total return':port_return,
-            'weekly_returns':weekly_returns,
-            'latest_portfolio':clean_weights}
+    market_returns, portfolio_returns, final_weights = bt.backtest()
+    total_portfolio_return = get_total_return(portfolio_returns)
+    total_market_return = get_total_return(market_returns)
+    final_weights = final_weights.to_dict()['weights']
+    return {
+        'market_returns': market_returns,
+        'portfolio_returns': portfolio_returns,
+        'total_market_return': total_market_return,
+        'total_portfolio_return': total_portfolio_return,
+        'final_weights': final_weights
+    }
