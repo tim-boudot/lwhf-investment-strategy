@@ -111,6 +111,7 @@ def get_all_close_prices(as_of_date: str):
         print(f'✅ Found {filename} in the local cache.')
         # read the json file as a dictionary
         result = pd.read_csv(df_full_path)
+        result = result.set_index('timestamp')
         return result
 
 
@@ -119,7 +120,7 @@ def get_all_close_prices(as_of_date: str):
     bq.get_data('2016-01-04', as_of_date)
     result = bq.get_prices()
 
-    result.to_csv(df_full_path, index=False)
+    result.to_csv(df_full_path)
     return result
 
 # @app.get("/all_close_prices_for_periods")
