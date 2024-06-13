@@ -76,7 +76,7 @@ class BackTester:
         returns_df = self.bq.returns
 
         # port_return = 1
-        weekly_returns = []
+        portfolio_returns = []
         market_returns = []
 
         # have uniform weights to start with
@@ -99,7 +99,7 @@ class BackTester:
             if np.all(y_pred < 0):
                 print(' -- all returns negative')
                 starting_point += datetime.timedelta(days=7)
-                weekly_returns.append(0)
+                portfolio_returns.append(0)
                 continue
 
             port = rp.Portfolio(returns=pred_df)
@@ -123,11 +123,11 @@ class BackTester:
             weekly_return = (clean_weights.weights * ret).sum()
             market_return = (uniform_weights * ret).sum()
 
-            weekly_returns.append(weekly_return)
+            portfolio_returns.append(weekly_return)
             market_returns.append(market_return)
             # port_return *= (1+weekly_return)
             starting_point += datetime.timedelta(days=7)
 
         # port_return -= 1
 
-        return market_returns, weekly_returns, clean_weights
+        return market_returns, portfolio_returns, clean_weights
