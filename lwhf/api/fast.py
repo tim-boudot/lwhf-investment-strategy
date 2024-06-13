@@ -3,7 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from lwhf.ml_logic.backtesting import get_data, features_from_data, initialize_model_LSTM, fitting_model, predicting, making_portfolio, portfolio_returns, backtesting
 from lwhf.portfolio.backtest import BackTester, get_total_return
-import time
+import time, os, json
+from lwhf.params import QUERIED_CACHE_LOCAL
+
 
 
 app = FastAPI()
@@ -30,6 +32,22 @@ def root():
 
 @app.get("/backtest")
 def final_backtest(as_of_date: str, n_periods:int):
+
+    backtest_api_cache_folder = 'backtest_api_cache'
+    full_path = os.path.join(QUERIED_CACHE_LOCAL, backtest_api_cache_folder)
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+
+    filename = f'{as_of_date}-{n_periods}.json'
+    json_full_path = os.path.join(full_path, filename)
+    if os.path.exists(json_full_path):
+        print(f'✅ Found {filename} in the local cache.')
+        # read the json file as a dictionary
+        with open(json_full_path, 'r') as file:
+            result = json.load(file)
+        return result
+
+
     # time.sleep(15)
     print('I start now')
     bt = BackTester(as_of_date, n_periods)
@@ -42,10 +60,16 @@ def final_backtest(as_of_date: str, n_periods:int):
     total_portfolio_return = get_total_return(portfolio_returns)
     total_market_return = get_total_return(market_returns)
     final_weights = final_weights.to_dict()['weights']
-    return {
+
+    result = {
         'market_returns': market_returns,
         'portfolio_returns': portfolio_returns,
         'total_market_return': total_market_return,
         'total_portfolio_return': total_portfolio_return,
         'final_weights': final_weights
     }
+    # save the file as a json to full_path
+    with open(json_full_path, 'w') as f:
+        json.dump(result, f)
+
+    return result
