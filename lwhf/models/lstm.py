@@ -28,7 +28,7 @@ class SimpleLSTM:
 
         # 2- Compilation
         model.compile(loss='mse',
-                    optimizer='rmsprop', #adam
+                    optimizer='adam', #adam
                     metrics=['mae']) # very high lr so we can converge with such a small datase
 
         self.model = model

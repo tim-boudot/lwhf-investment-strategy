@@ -70,6 +70,24 @@ class BackTester:
         self.model.initialize_model()
         self.model.fit_model()
 
+    def build_portfolio(self):
+        as_of = datetime.datetime.strptime(self.as_of_date, '%Y-%m-%d').date()
+        starting_point = as_of - datetime.timedelta(days=7 * self.n_periods)
+        returns_df = self.bq.returns
+        pred_df = returns_df[returns_df.index.date <= starting_point]
+        pred_X, _ = get_Xy(pred_df)
+        y_pred = self.model.predict(pred_X)
+        cov_df = pred_df.cov()
+        port = rp.Portfolio(returns=pred_df)
+        if np.all(y_pred < 0):
+            port.mu = pred_df.mean().values.reshape(-1)
+        else:
+            port.mu = y_pred.reshape(-1)
+        port.cov = cov_df
+        clean_weights = port.optimization(model='Classic', rm='MV', obj='Sharpe', rf=0, l=0).round(5)
+
+        return clean_weights
+
     def backtest(self):
         as_of = datetime.datetime.strptime(self.as_of_date, '%Y-%m-%d').date()
         starting_point = as_of - datetime.timedelta(days=7 * self.n_periods)
