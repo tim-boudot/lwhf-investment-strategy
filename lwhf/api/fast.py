@@ -151,3 +151,26 @@ def get_all_close_prices(as_of_date: str):
 
 #     result.to_csv(df_full_path, index=False)
 #     return result
+
+@app.get("/current_portfolio")
+def build_portfolio(as_of_date: str):
+    backtest_api_cache_folder = 'backtest_api_cache'
+    full_path = os.path.join(QUERIED_CACHE_LOCAL, backtest_api_cache_folder)
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+
+    filename = f'{as_of_date}-{0}.json'
+    json_full_path = os.path.join(full_path, filename)
+    if os.path.exists(json_full_path):
+        print(f'✅ Found {filename} in the local cache.')
+        # read the json file as a dictionary
+        with open(json_full_path, 'r') as file:
+            result = json.load(file)
+        return result
+
+    bt = BackTester(as_of_date, 0)
+    bt.get_all_data()
+    bt.train_model()
+    current_weights = bt.build_portfolio()
+
+    return current_weights
