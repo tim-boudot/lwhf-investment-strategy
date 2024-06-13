@@ -78,12 +78,14 @@ class BackTester:
         # port_return = 1
         portfolio_returns = []
         market_returns = []
+        weekly_weights = []
 
         # have uniform weights to start with
         ticker_names = list(returns_df.columns)
         num_tickers = len(ticker_names)
         uniform_weights = np.full(num_tickers, 1/num_tickers)
         clean_weights = pd.DataFrame(data={'weights': uniform_weights}, index=ticker_names)
+        zero_weights = pd.DataFrame(data={'weights': np.zeros(num_tickers)}, index=ticker_names)
 
         while starting_point < as_of:
             one_week_ahead = starting_point + datetime.timedelta(days=7)
@@ -96,10 +98,18 @@ class BackTester:
 
             #print(f' -- shape of pred_df: {pred_df.shape}')
 
+            prices_df = self.bq.prices
+            week_df = prices_df[prices_df.index.date >= starting_point]
+            week_df = week_df[week_df.index.date <= one_week_ahead]
+
             if np.all(y_pred < 0):
                 print(' -- all returns negative')
                 starting_point += datetime.timedelta(days=7)
+                ret = week_df.iloc[-1] / week_df.iloc[0] - 1
+                market_return = (uniform_weights * ret).sum()
+                market_returns.append(market_return)
                 portfolio_returns.append(0)
+                weekly_weights.append(zero_weights)
                 continue
 
             port = rp.Portfolio(returns=pred_df)
@@ -109,9 +119,7 @@ class BackTester:
 
             #print(f' -- optimized weights: {clean_weights.shape}')
 
-            prices_df = self.bq.prices
-            week_df = prices_df[prices_df.index.date >= starting_point]
-            week_df = week_df[week_df.index.date <= one_week_ahead]
+
 
             # print(f' -- shape of pred_X: {pred_X.shape}')
             # print(f' -- shape of y_pred: {y_pred.shape}')
@@ -125,9 +133,10 @@ class BackTester:
 
             portfolio_returns.append(weekly_return)
             market_returns.append(market_return)
+            weekly_weights.append(clean_weights)
             # port_return *= (1+weekly_return)
             starting_point += datetime.timedelta(days=7)
 
         # port_return -= 1
 
-        return market_returns, portfolio_returns, clean_weights
+        return market_returns, portfolio_returns, weekly_weights
