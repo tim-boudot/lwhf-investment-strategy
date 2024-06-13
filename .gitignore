@@ -9,3 +9,5 @@ models/*
 *.pyc
 lwhf.egg-info/*
 *.ipynb_checkpoints/*
+.env_docker
+.env_docker.yaml
