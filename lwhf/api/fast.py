@@ -171,6 +171,6 @@ def build_portfolio(as_of_date: str):
     bt = BackTester(as_of_date, 0)
     bt.get_all_data()
     bt.train_model()
-    current_weights = bt.build_portfolio()
+    exp_return, exp_variance, current_weights = bt.build_portfolio()
 
-    return current_weights
+    return exp_return, exp_variance, current_weights

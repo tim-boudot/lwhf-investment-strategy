@@ -78,15 +78,20 @@ class BackTester:
         pred_X, _ = get_Xy(pred_df)
         y_pred = self.model.predict(pred_X)
         cov_df = pred_df.cov()
-        port = rp.Portfolio(returns=pred_df)
+        port = rp.Portfolio(returns=pred_df, nea=8)
+
         if np.all(y_pred < 0):
             port.mu = pred_df.mean().values.reshape(-1)
         else:
             port.mu = y_pred.reshape(-1)
         port.cov = cov_df
+
         clean_weights = port.optimization(model='Classic', rm='MV', obj='Sharpe', rf=0, l=0).round(5)
 
-        return clean_weights
+        exp_return = (y_pred * clean_weights.round(5).values).sum()
+        exp_variance = np.multiply(np.dot(clean_weights,clean_weights.T),cov_df).sum().sum()
+
+        return exp_return, exp_variance, clean_weights
 
     def backtest(self):
         as_of = datetime.datetime.strptime(self.as_of_date, '%Y-%m-%d').date()
