@@ -135,7 +135,7 @@ class BackTester:
                 weekly_weights.append(zero_weights)
                 continue
 
-            port = rp.Portfolio(returns=pred_df)
+            port = rp.Portfolio(returns=pred_df, nea=8)
             port.mu = y_pred.reshape(-1)
             port.cov = cov_df
             clean_weights = port.optimization(model='Classic', rm='MV', obj='Sharpe', rf=0, l=0)
