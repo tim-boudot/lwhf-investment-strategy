@@ -125,18 +125,24 @@ class BackTester:
             week_df = prices_df[prices_df.index.date >= starting_point]
             week_df = week_df[week_df.index.date <= one_week_ahead]
 
-            if np.all(y_pred < 0):
-                print(' -- all returns negative')
-                starting_point += datetime.timedelta(days=7)
-                ret = week_df.iloc[-1] / week_df.iloc[0] - 1
-                market_return = (uniform_weights * ret).sum()
-                market_returns.append(market_return)
-                portfolio_returns.append(0)
-                weekly_weights.append(zero_weights)
-                continue
+            # if np.all(y_pred < 0):
+            #     print(' -- all returns negative')
+            #     starting_point += datetime.timedelta(days=7)
+            #     ret = week_df.iloc[-1] / week_df.iloc[0] - 1
+            #     market_return = (uniform_weights * ret).sum()
+            #     market_returns.append(market_return)
+
+            #     port.mu = pred_df.mean().values.reshape(-1)
+            #     portfolio_returns.append(0)
+            #     weekly_weights.append(zero_weights)
+            #     continue
 
             port = rp.Portfolio(returns=pred_df, nea=8)
-            port.mu = y_pred.reshape(-1)
+            if np.all(y_pred < 0):
+                port.mu = pred_df.mean().values.reshape(-1)
+            else:
+                port.mu = y_pred.reshape(-1)
+            # port.mu = y_pred.reshape(-1)
             port.cov = cov_df
             clean_weights = port.optimization(model='Classic', rm='MV', obj='Sharpe', rf=0, l=0)
 
